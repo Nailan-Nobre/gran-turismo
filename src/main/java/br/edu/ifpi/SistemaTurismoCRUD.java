@@ -8,20 +8,24 @@ import java.util.Scanner;
  */
 public class SistemaTurismoCRUD {
     
-    private static TurismoService turismoService = new TurismoService();
+    private static TurismoService turismoService;
     private static Scanner scanner = new Scanner(System.in);
     
     public static void main(String[] args) {
-        System.out.println("🌍 === SISTEMA DE TURISMO GRAN TURISMO === 🌍");
+        System.out.println("=== SISTEMA DE TURISMO GRAN TURISMO ===");
         System.out.println("Sistema completo com operações CRUD");
         
         try {
+            // Inicializa o serviço apenas quando necessário
+            turismoService = new TurismoService();
             menuPrincipal();
         } catch (Exception e) {
-            System.err.println("❌ Erro inesperado: " + e.getMessage());
+            System.err.println("ERRO: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            turismoService.fecharRecursos();
+            if (turismoService != null) {
+                turismoService.fecharRecursos();
+            }
             if (scanner != null) {
                 scanner.close();
             }
@@ -31,15 +35,14 @@ public class SistemaTurismoCRUD {
     private static void menuPrincipal() {
         while (true) {
             System.out.println("\n" + "=".repeat(50));
-            System.out.println("🌍 GRAN TURISMO - MENU PRINCIPAL");
+            System.out.println("GRAN TURISMO - MENU PRINCIPAL");
             System.out.println("=".repeat(50));
-            System.out.println("1. 👤 Gerenciar Clientes");
-            System.out.println("2. 🌍 Gerenciar Destinos");
-            System.out.println("3. ✈️  Gerenciar Voos");
-            System.out.println("4. 🏨 Gerenciar Hospedagens");
-            System.out.println("5. 📊 Relatórios e Consultas");
-            System.out.println("6. 🎯 Sistema Original (Demo)");
-            System.out.println("0. 🚪 Sair");
+            System.out.println("1. Gerenciar Clientes");
+            System.out.println("2. Gerenciar Destinos");
+            System.out.println("3. Gerenciar Voos");
+            System.out.println("4. Gerenciar Hospedagens");
+            System.out.println("5. Relatórios e Consultas");
+            System.out.println("0. Sair");
             System.out.println("=".repeat(50));
             System.out.print("Escolha uma opção: ");
             
@@ -53,58 +56,53 @@ public class SistemaTurismoCRUD {
                     turismoService.menuDestinos();
                     break;
                 case "3":
-                    menuVoos();
+                    turismoService.menuVoos();
                     break;
                 case "4":
-                    menuHospedagens();
+                    turismoService.menuHospedagens();
                     break;
                 case "5":
                     menuRelatorios();
                     break;
-                case "6":
-                    sistemaOriginal();
-                    break;
                 case "0":
-                    System.out.println("👋 Obrigado por usar o Gran Turismo!");
+                    System.out.println("Obrigado por usar o Gran Turismo!");
                     return;
                 default:
-                    System.out.println("❌ Opção inválida! Tente novamente.");
+                    System.out.println("Opção inválida! Tente novamente.");
             }
         }
     }
     
-    private static void menuVoos() {
-        System.out.println("\n=== GERENCIAR VOOS ===");
-        System.out.println("✈️  Funcionalidade em desenvolvimento...");
-        System.out.println("📝 Em breve: Cadastrar, listar, buscar e gerenciar voos");
-        System.out.print("Pressione ENTER para continuar...");
-        scanner.nextLine();
-    }
-    
-    private static void menuHospedagens() {
-        System.out.println("\n=== GERENCIAR HOSPEDAGENS ===");
-        System.out.println("🏨 Funcionalidade em desenvolvimento...");
-        System.out.println("📝 Em breve: Cadastrar, listar, buscar e gerenciar hospedagens");
-        System.out.print("Pressione ENTER para continuar...");
-        scanner.nextLine();
-    }
-    
     private static void menuRelatorios() {
-        System.out.println("\n=== RELATÓRIOS E CONSULTAS ===");
-        System.out.println("📊 Funcionalidade em desenvolvimento...");
-        System.out.println("📝 Em breve: Relatórios de clientes, destinos mais procurados, etc.");
-        System.out.print("Pressione ENTER para continuar...");
-        scanner.nextLine();
-    }
-    
-    private static void sistemaOriginal() {
-        System.out.println("\n=== SISTEMA ORIGINAL (DEMO) ===");
-        System.out.println("🎯 Esta é uma demonstração do sistema original...");
-        System.out.println("📝 Funcionalidade mantida para referência");
-        System.out.print("Pressione ENTER para continuar...");
-        scanner.nextLine();
-        
-        // Aqui você pode chamar o sistema original se quiser
-        // br.edu.ifpi.Model.Main.main(new String[]{});
+        while (true) {
+            System.out.println("\n=== RELATÓRIOS E CONSULTAS ===");
+            System.out.println("1. Total de Clientes Cadastrados");
+            System.out.println("2. Total de Destinos por País");
+            System.out.println("3. Listar Todos os Voos");
+            System.out.println("4. Listar Todas as Hospedagens");
+            System.out.println("0. Voltar");
+            System.out.print("Escolha uma opção: ");
+            
+            String opcao = scanner.nextLine();
+            
+            switch (opcao) {
+                case "1":
+                    turismoService.relatorioTotalClientes();
+                    break;
+                case "2":
+                    turismoService.relatorioDestinosPorPais();
+                    break;
+                case "3":
+                    turismoService.relatorioTodosVoos();
+                    break;
+                case "4":
+                    turismoService.relatorioTodasHospedagens();
+                    break;
+                case "0":
+                    return;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        }
     }
 }
