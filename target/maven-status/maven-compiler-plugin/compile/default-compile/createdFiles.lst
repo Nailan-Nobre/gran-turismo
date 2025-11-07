@@ -1,4 +1,5 @@
 br\edu\ifpi\Model\Main.class
+br\edu\ifpi\util\Validador.class
 br\edu\ifpi\dao\GenericDAOImpl.class
 br\edu\ifpi\Model\TransferenciaBancaria.class
 br\edu\ifpi\Model\Voo.class
@@ -9,7 +10,6 @@ br\edu\ifpi\Model\MetodoPagamento.class
 br\edu\ifpi\Model\Reserva.class
 br\edu\ifpi\Model\PacoteTuristico.class
 br\edu\ifpi\factory\DAOFactory.class
-br\edu\ifpi\Main.class
 br\edu\ifpi\factory\EntidadeFactory.class
 br\edu\ifpi\dao\GenericDAO.class
 br\edu\ifpi\factory\MetodoPagamentoFactory.class

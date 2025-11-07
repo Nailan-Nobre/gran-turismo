@@ -4,22 +4,8 @@ import br.edu.ifpi.Model.MetodoPagamento;
 import br.edu.ifpi.Model.CartaoCredito;
 import br.edu.ifpi.Model.TransferenciaBancaria;
 
-/**
- * Factory Method para criação de diferentes métodos de pagamento.
- * Encapsula a lógica de criação de objetos MetodoPagamento.
- */
 public class MetodoPagamentoFactory {
     
-    /**
-     * Cria um método de pagamento baseado no tipo informado
-     * 
-     * @param tipo Tipo do método de pagamento ("CARTAO" ou "PIX")
-     * @param dados Array com os dados necessários para criar o método
-     *              - Para CARTAO: [numeroCartao, nomeTitular]
-     *              - Para PIX: [chavePix]
-     * @return Instância de MetodoPagamento
-     * @throws IllegalArgumentException se o tipo for inválido ou dados insuficientes
-     */
     public static MetodoPagamento criarMetodoPagamento(String tipo, String... dados) {
         if (tipo == null) {
             throw new IllegalArgumentException("Tipo de pagamento não pode ser nulo");
@@ -53,16 +39,14 @@ public class MetodoPagamentoFactory {
         }
     }
     
-    /**
-     * Cria um Cartão de Crédito
-     */
-    public static MetodoPagamento criarCartaoCredito(String numeroCartao, String nomeTitular) {
-        return new CartaoCredito(numeroCartao, nomeTitular);
+    public static MetodoPagamento criarCartaoCredito(String numeroCartao, String nomeTitular, String validade, String cvv) {
+        return new CartaoCredito(numeroCartao, nomeTitular, validade, cvv);
     }
     
-    /**
-     * Cria uma Transferência Bancária (PIX)
-     */
+    public static MetodoPagamento criarTransferenciaBancaria(String banco, String agencia, String conta, String chavePix) {
+        return new TransferenciaBancaria(banco, agencia, conta, chavePix);
+    }
+    
     public static MetodoPagamento criarTransferenciaPix(String chavePix) {
         return new TransferenciaBancaria(chavePix);
     }

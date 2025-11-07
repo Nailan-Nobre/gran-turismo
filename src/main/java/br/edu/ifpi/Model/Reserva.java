@@ -23,8 +23,28 @@ public class Reserva {
             System.out.println("Falha ao processar pagamento.");
         }
     }
+    
+    public double calcularValorTotal() {
+        return pacote.getPrecoTotal();
+    }
 
     public String getResumoReserva() {
         return "Reserva #" + codigoReserva + "\n" + pacote.getDescricaoPacote();
+    }
+    
+    public int getCodigoReserva() {
+        return codigoReserva;
+    }
+    
+    public Cliente getCliente() {
+        return cliente;
+    }
+    
+    public PacoteTuristico getPacote() {
+        return pacote;
+    }
+    
+    public MetodoPagamento getMetodoPagamento() {
+        return metodoPagamento;
     }
 }

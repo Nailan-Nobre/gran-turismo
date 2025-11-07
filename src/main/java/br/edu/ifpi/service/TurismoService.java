@@ -2,6 +2,8 @@ package br.edu.ifpi.service;
 
 import br.edu.ifpi.Model.*;
 import br.edu.ifpi.dao.*;
+import br.edu.ifpi.factory.*;
+import br.edu.ifpi.util.Validador;
 import java.util.List;
 import java.util.Scanner;
 
@@ -55,23 +57,54 @@ public class TurismoService {
     
     private void cadastrarCliente() {
         System.out.println("\n--- Cadastrar Cliente ---");
+        
         System.out.print("Nome: ");
-        String nome = scanner.nextLine();
+        String nome = scanner.nextLine().trim();
+        if (nome.isEmpty()) {
+            System.out.println("ERRO: Nome não pode ser vazio.");
+            return;
+        }
         
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
+        String email = "";
+        while (email.isEmpty()) {
+            System.out.print("Email: ");
+            email = scanner.nextLine().trim();
+            if (!Validador.validarEmail(email)) {
+                System.out.println("ERRO: Email inválido. Use o formato: exemplo@dominio.com");
+                email = "";
+            }
+        }
         
-        System.out.print("CPF: ");
-        String cpf = scanner.nextLine();
+        String telefone = "";
+        while (telefone.isEmpty()) {
+            System.out.print("Telefone (com DDD): ");
+            telefone = scanner.nextLine().trim();
+            if (!Validador.validarTelefone(telefone)) {
+                System.out.println("ERRO: Telefone inválido. Use o formato: (99) 99999-9999");
+                telefone = "";
+            }
+        }
+        telefone = Validador.formatarTelefone(telefone);
+        
+        String cpf = "";
+        while (cpf.isEmpty()) {
+            System.out.print("CPF: ");
+            cpf = scanner.nextLine().trim();
+            if (!Validador.validarCPF(cpf)) {
+                System.out.println("ERRO: CPF inválido. Digite apenas números (11 dígitos).");
+                cpf = "";
+            }
+        }
+        cpf = Validador.formatarCPF(cpf);
         
         try {
-            // Verificar se CPF já existe
             if (clienteDAO.existeCpf(cpf)) {
                 System.out.println("ERRO: CPF já está cadastrado!");
                 return;
             }
             
-            Cliente cliente = new Cliente(nome, email, cpf);
+            Cliente cliente = EntidadeFactory.criarCliente(nome, email, cpf);
+            cliente.setTelefone(telefone);
             clienteDAO.salvar(cliente);
             System.out.println("Cliente cadastrado com sucesso! ID: " + cliente.getId());
         } catch (Exception e) {
@@ -692,6 +725,278 @@ public class TurismoService {
             }
         } catch (Exception e) {
             System.out.println("ERRO ao gerar relatório: " + e.getMessage());
+        }
+    }
+    
+    // ==================== PAGAMENTOS ====================
+    
+    public void menuPagamentos() {
+        boolean continuar = true;
+        while (continuar) {
+            System.out.println("\n=== PROCESSAMENTO DE PAGAMENTOS ===");
+            System.out.println("1 - Processar Pagamento com Cartão de Crédito");
+            System.out.println("2 - Processar Pagamento com PIX");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha: ");
+            
+            int opcao = scanner.nextInt();
+            scanner.nextLine();
+            
+            switch (opcao) {
+                case 1 -> processarPagamentoCartao();
+                case 2 -> processarPagamentoPix();
+                case 0 -> continuar = false;
+                default -> System.out.println("Opção inválida.");
+            }
+        }
+    }
+    
+    private void processarPagamentoCartao() {
+        try {
+            System.out.print("Valor a pagar: R$ ");
+            double valor = scanner.nextDouble();
+            scanner.nextLine();
+            
+            System.out.print("Número do cartão: ");
+            String numeroCartao = scanner.nextLine();
+            
+            System.out.print("Nome do titular: ");
+            String nomeTitular = scanner.nextLine();
+            
+            System.out.print("Validade (MM/AA): ");
+            String validade = scanner.nextLine();
+            
+            System.out.print("CVV: ");
+            String cvv = scanner.nextLine();
+            
+            MetodoPagamento pagamento = MetodoPagamentoFactory.criarCartaoCredito(
+                numeroCartao, nomeTitular, validade, cvv
+            );
+            
+            boolean sucesso = pagamento.processarPagamento(valor);
+            
+            if (sucesso) {
+                System.out.println("Pagamento processado com sucesso!");
+                System.out.println("Valor: R$ " + String.format("%.2f", valor));
+                System.out.println("Forma: " + pagamento.obterDescricao());
+            } else {
+                System.out.println("Falha ao processar pagamento.");
+            }
+            
+        } catch (Exception e) {
+            System.out.println("ERRO: " + e.getMessage());
+        }
+    }
+    
+    private void processarPagamentoPix() {
+        try {
+            System.out.print("Valor a pagar: R$ ");
+            double valor = scanner.nextDouble();
+            scanner.nextLine();
+            
+            System.out.print("Banco: ");
+            String banco = scanner.nextLine();
+            
+            System.out.print("Agência: ");
+            String agencia = scanner.nextLine();
+            
+            System.out.print("Conta: ");
+            String conta = scanner.nextLine();
+            
+            System.out.print("Chave PIX: ");
+            String chavePix = scanner.nextLine();
+            
+            MetodoPagamento pagamento = MetodoPagamentoFactory.criarTransferenciaBancaria(
+                banco, agencia, conta, chavePix
+            );
+            
+            boolean sucesso = pagamento.processarPagamento(valor);
+            
+            if (sucesso) {
+                System.out.println("Pagamento processado com sucesso!");
+                System.out.println("Valor: R$ " + String.format("%.2f", valor));
+                System.out.println("Forma: " + pagamento.obterDescricao());
+            } else {
+                System.out.println("Falha ao processar pagamento.");
+            }
+            
+        } catch (Exception e) {
+            System.out.println("ERRO: " + e.getMessage());
+        }
+    }
+    
+    // ==================== PACOTES TURÍSTICOS ====================
+    
+    public void menuPacotes() {
+        boolean continuar = true;
+        while (continuar) {
+            System.out.println("\n=== PACOTES TURÍSTICOS ===");
+            System.out.println("1 - Criar Novo Pacote");
+            System.out.println("2 - Criar Nova Reserva");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha: ");
+            
+            int opcao = scanner.nextInt();
+            scanner.nextLine();
+            
+            switch (opcao) {
+                case 1 -> criarPacoteTuristico();
+                case 2 -> criarReserva();
+                case 0 -> continuar = false;
+                default -> System.out.println("Opção inválida.");
+            }
+        }
+    }
+    
+    private void criarPacoteTuristico() {
+        try {
+            System.out.print("ID do Destino: ");
+            Long destinoId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Destino destino = destinoDAO.buscarPorId(destinoId);
+            if (destino == null) {
+                System.out.println("Destino não encontrado.");
+                return;
+            }
+            
+            System.out.print("ID do Voo: ");
+            Long vooId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Voo voo = vooDAO.buscarPorId(vooId);
+            if (voo == null) {
+                System.out.println("Voo não encontrado.");
+                return;
+            }
+            
+            System.out.print("ID da Hospedagem: ");
+            Long hospedagemId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Hospedagem hospedagem = hospedagemDAO.buscarPorId(hospedagemId);
+            if (hospedagem == null) {
+                System.out.println("Hospedagem não encontrada.");
+                return;
+            }
+            
+            PacoteTuristico pacote = PacoteTuristicoFactory.builder()
+                .comDestino(destino)
+                .comVoo(voo)
+                .comHospedagem(hospedagem)
+                .build();
+            
+            System.out.println("\nPacote criado com sucesso!");
+            System.out.println("Destino: " + destino.getNome() + " - " + destino.getPais());
+            System.out.println("Voo: " + voo.getCompanhiaAerea() + " (" + voo.getOrigem() + " -> " + voo.getDestinoVoo() + ")");
+            System.out.println("Hospedagem: " + hospedagem.getNomeHotel() + " - " + hospedagem.getDiarias() + " diárias");
+            System.out.println("Valor total: R$ " + String.format("%.2f", pacote.calcularValorTotal()));
+            
+        } catch (Exception e) {
+            System.out.println("ERRO ao criar pacote: " + e.getMessage());
+        }
+    }
+    
+    private void criarReserva() {
+        try {
+            System.out.print("ID do Cliente: ");
+            Long clienteId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Cliente cliente = clienteDAO.buscarPorId(clienteId);
+            if (cliente == null) {
+                System.out.println("Cliente não encontrado.");
+                return;
+            }
+            
+            System.out.print("ID do Destino: ");
+            Long destinoId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Destino destino = destinoDAO.buscarPorId(destinoId);
+            if (destino == null) {
+                System.out.println("Destino não encontrado.");
+                return;
+            }
+            
+            System.out.print("ID do Voo: ");
+            Long vooId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Voo voo = vooDAO.buscarPorId(vooId);
+            if (voo == null) {
+                System.out.println("Voo não encontrado.");
+                return;
+            }
+            
+            System.out.print("ID da Hospedagem: ");
+            Long hospedagemId = scanner.nextLong();
+            scanner.nextLine();
+            
+            Hospedagem hospedagem = hospedagemDAO.buscarPorId(hospedagemId);
+            if (hospedagem == null) {
+                System.out.println("Hospedagem não encontrada.");
+                return;
+            }
+            
+            System.out.println("\n=== Forma de Pagamento ===");
+            System.out.println("1 - Cartão de Crédito");
+            System.out.println("2 - PIX");
+            System.out.print("Escolha: ");
+            int opcaoPagamento = scanner.nextInt();
+            scanner.nextLine();
+            
+            MetodoPagamento metodoPagamento = null;
+            
+            if (opcaoPagamento == 1) {
+                System.out.print("Número do cartão: ");
+                String numeroCartao = scanner.nextLine();
+                System.out.print("Nome do titular: ");
+                String nomeTitular = scanner.nextLine();
+                System.out.print("Validade (MM/AA): ");
+                String validade = scanner.nextLine();
+                System.out.print("CVV: ");
+                String cvv = scanner.nextLine();
+                
+                metodoPagamento = MetodoPagamentoFactory.criarCartaoCredito(
+                    numeroCartao, nomeTitular, validade, cvv
+                );
+            } else if (opcaoPagamento == 2) {
+                System.out.print("Banco: ");
+                String banco = scanner.nextLine();
+                System.out.print("Agência: ");
+                String agencia = scanner.nextLine();
+                System.out.print("Conta: ");
+                String conta = scanner.nextLine();
+                System.out.print("Chave PIX: ");
+                String chavePix = scanner.nextLine();
+                
+                metodoPagamento = MetodoPagamentoFactory.criarTransferenciaBancaria(
+                    banco, agencia, conta, chavePix
+                );
+            } else {
+                System.out.println("Opção inválida.");
+                return;
+            }
+            
+            Reserva reserva = PacoteTuristicoFactory.builder()
+                .comCliente(cliente)
+                .comDestino(destino)
+                .comVoo(voo)
+                .comHospedagem(hospedagem)
+                .comFormaPagamento(metodoPagamento)
+                .buildReserva();
+            
+            System.out.println("\nReserva criada com sucesso!");
+            System.out.println("Cliente: " + cliente.getNome() + " (CPF: " + cliente.getCpf() + ")");
+            System.out.println("Destino: " + destino.getNome() + " - " + destino.getPais());
+            System.out.println("Voo: " + voo.getCompanhiaAerea() + " (" + voo.getOrigem() + " -> " + voo.getDestinoVoo() + ")");
+            System.out.println("Hospedagem: " + hospedagem.getNomeHotel() + " - " + hospedagem.getDiarias() + " diárias");
+            System.out.println("Forma de pagamento: " + metodoPagamento.obterDescricao());
+            System.out.println("Valor total: R$ " + String.format("%.2f", reserva.calcularValorTotal()));
+            
+        } catch (Exception e) {
+            System.out.println("ERRO ao criar reserva: " + e.getMessage());
         }
     }
     

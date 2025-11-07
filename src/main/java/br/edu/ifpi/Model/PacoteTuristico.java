@@ -14,6 +14,10 @@ public class PacoteTuristico {
     public double getPrecoTotal() {
         return servicos.stream().mapToDouble(ServicoContratavel::getPreco).sum();
     }
+    
+    public double calcularValorTotal() {
+        return getPrecoTotal();
+    }
 
     public String getDescricaoPacote() {
         StringBuilder sb = new StringBuilder("Destino: " + destino.getDescricao() + "\nServiços:\n");
@@ -21,5 +25,13 @@ public class PacoteTuristico {
             sb.append("- ").append(s.getDescricaoServico()).append(" (R$ ").append(s.getPreco()).append(")\n");
         }
         return sb.toString();
+    }
+    
+    public Destino getDestino() {
+        return destino;
+    }
+    
+    public List<ServicoContratavel> getServicos() {
+        return servicos;
     }
 }
