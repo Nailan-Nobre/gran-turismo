@@ -103,7 +103,25 @@ public class TurismoService {
                 return;
             }
             
-            Cliente cliente = EntidadeFactory.criarCliente(nome, email, cpf);
+            String senha = "";
+            while (senha.isEmpty()) {
+                System.out.print("Senha (mínimo 6 caracteres): ");
+                senha = scanner.nextLine().trim();
+                if (senha.length() < 6) {
+                    System.out.println("ERRO: Senha deve ter no mínimo 6 caracteres.");
+                    senha = "";
+                    continue;
+                }
+                
+                System.out.print("Confirme a senha: ");
+                String confirmaSenha = scanner.nextLine().trim();
+                if (!senha.equals(confirmaSenha)) {
+                    System.out.println("ERRO: As senhas não coincidem.");
+                    senha = "";
+                }
+            }
+            
+            Cliente cliente = EntidadeFactory.criarCliente(nome, email, cpf, senha);
             cliente.setTelefone(telefone);
             clienteDAO.salvar(cliente);
             System.out.println("Cliente cadastrado com sucesso! ID: " + cliente.getId());

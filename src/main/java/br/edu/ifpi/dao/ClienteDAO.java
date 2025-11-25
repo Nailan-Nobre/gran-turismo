@@ -74,4 +74,21 @@ public class ClienteDAO extends GenericDAOImpl<Cliente, Long> {
     public boolean existeEmail(String email) {
         return buscarPorEmail(email) != null;
     }
+    
+    /**
+     * Realiza login verificando CPF e senha
+     */
+    public Cliente fazerLogin(String cpf, String senha) {
+        EntityManager em = getEntityManager();
+        try {
+            String jpql = "SELECT c FROM Cliente c WHERE c.cpf = :cpf AND c.senha = :senha";
+            TypedQuery<Cliente> query = em.createQuery(jpql, Cliente.class);
+            query.setParameter("cpf", cpf);
+            query.setParameter("senha", senha);
+            List<Cliente> clientes = query.getResultList();
+            return clientes.isEmpty() ? null : clientes.get(0);
+        } finally {
+            em.close();
+        }
+    }
 }

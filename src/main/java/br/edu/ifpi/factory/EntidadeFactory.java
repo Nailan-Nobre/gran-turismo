@@ -20,6 +20,25 @@ public class EntidadeFactory {
         return new Cliente(nome, email, cpf);
     }
     
+    public static Cliente criarCliente(String nome, String email, String cpf, String senha) {
+        validarString(nome, "Nome");
+        validarString(senha, "Senha");
+        
+        if (!Validador.validarEmail(email)) {
+            throw new IllegalArgumentException("Email inválido: " + email);
+        }
+        
+        if (!Validador.validarCPF(cpf)) {
+            throw new IllegalArgumentException("CPF inválido: " + cpf);
+        }
+        
+        if (senha.length() < 6) {
+            throw new IllegalArgumentException("Senha deve ter no mínimo 6 caracteres");
+        }
+        
+        return new Cliente(nome, email, cpf, senha);
+    }
+    
     public static Destino criarDestino(String nome, String pais) {
         validarString(nome, "Nome do destino");
         validarString(pais, "País");

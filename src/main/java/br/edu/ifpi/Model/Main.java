@@ -31,8 +31,20 @@ public class Main {
             System.out.println(" OK!");
             System.out.println("Sistema pronto!\n");
             
-            Cliente cliente = realizarCadastroCliente();
-            MetodoPagamento pagamento = configurarPagamento();
+            Cliente cliente = autenticarCliente();
+            if (cliente == null) {
+                System.out.println("Encerrando sistema...");
+                return;
+            }
+            
+            // Verifica se cliente já tem método de pagamento configurado
+            MetodoPagamento pagamento;
+            if (cliente.temPagamentoConfigurado()) {
+                pagamento = cliente.recuperarMetodoPagamento();
+                System.out.println("✓ Método de pagamento carregado: " + pagamento.obterDescricao());
+            } else {
+                pagamento = configurarPagamento(cliente);
+            }
             
             menuPrincipal(cliente, pagamento);
             
@@ -75,11 +87,69 @@ public class Main {
         hospedagemDAO = DAOFactory.getHospedagemDAO();
     }
     
+    private static Cliente autenticarCliente() {
+        while (true) {
+            System.out.println("\n=== AUTENTICAÇÃO ===");
+            System.out.println("[1] Fazer Login");
+            System.out.println("[2] Criar Nova Conta");
+            System.out.println("[0] Sair");
+            System.out.print("Escolha: ");
+            String opcao = scanner.nextLine().trim();
+            
+            if (opcao.equals("1")) {
+                Cliente cliente = realizarLogin();
+                if (cliente != null) {
+                    return cliente;
+                }
+            } else if (opcao.equals("2")) {
+                Cliente cliente = realizarCadastroCliente();
+                if (cliente != null) {
+                    return cliente;
+                }
+            } else if (opcao.equals("0")) {
+                return null;
+            } else {
+                System.out.println("Opção inválida!");
+            }
+        }
+    }
+    
+    private static Cliente realizarLogin() {
+        System.out.println("\n=== LOGIN ===");
+        
+        System.out.print("CPF: ");
+        String cpf = scanner.nextLine().trim();
+        
+        if (!Validador.validarCPF(cpf)) {
+            System.out.println("ERRO: CPF inválido.");
+            return null;
+        }
+        cpf = Validador.formatarCPF(cpf);
+        
+        System.out.print("Senha: ");
+        String senha = scanner.nextLine().trim();
+        
+        try {
+            Cliente cliente = clienteDAO.fazerLogin(cpf, senha);
+            if (cliente != null) {
+                System.out.println("\n✓ Login realizado com sucesso!");
+                System.out.println("Bem-vindo(a), " + cliente.getNome() + "!");
+                return cliente;
+            } else {
+                System.out.println("ERRO: CPF ou senha incorretos.");
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println("ERRO ao fazer login: " + e.getMessage());
+            return null;
+        }
+    }
+    
     private static Cliente realizarCadastroCliente() {
         Cliente cliente = null;
         
         while (cliente == null) {
-            System.out.println("\n=== CADASTRO DE CLIENTE ===");
+            System.out.println("\n=== CADASTRO DE NOVA CONTA ===");
             
             System.out.print("Nome completo: ");
             String nome = scanner.nextLine().trim();
@@ -120,12 +190,41 @@ public class Main {
             }
             cpf = Validador.formatarCPF(cpf);
             
+            // Verificar se CPF já existe
             try {
-                cliente = EntidadeFactory.criarCliente(nome, email, cpf);
+                if (clienteDAO.existeCpf(cpf)) {
+                    System.out.println("ERRO: CPF já cadastrado. Use a opção de login.");
+                    return null;
+                }
+            } catch (Exception e) {
+                System.out.println("ERRO ao verificar CPF: " + e.getMessage());
+                return null;
+            }
+            
+            String senha = "";
+            while (senha.isEmpty()) {
+                System.out.print("Senha (mínimo 6 caracteres): ");
+                senha = scanner.nextLine().trim();
+                if (senha.length() < 6) {
+                    System.out.println("ERRO: Senha deve ter no mínimo 6 caracteres.");
+                    senha = "";
+                    continue;
+                }
+                
+                System.out.print("Confirme a senha: ");
+                String confirmaSenha = scanner.nextLine().trim();
+                if (!senha.equals(confirmaSenha)) {
+                    System.out.println("ERRO: As senhas não coincidem.");
+                    senha = "";
+                }
+            }
+            
+            try {
+                cliente = EntidadeFactory.criarCliente(nome, email, cpf, senha);
                 cliente.setTelefone(telefone);
                 clienteDAO.salvar(cliente);
-                System.out.println("\n✓ Cliente cadastrado com sucesso no banco de dados!");
-                System.out.println("ID: " + cliente.getId());
+                System.out.println("\n✓ Conta criada com sucesso!");
+                System.out.println("Bem-vindo(a), " + cliente.getNome() + "!");
             } catch (Exception e) {
                 System.out.println("ERRO ao cadastrar: " + e.getMessage());
                 cliente = null;
@@ -135,7 +234,7 @@ public class Main {
         return cliente;
     }
     
-    private static MetodoPagamento configurarPagamento() {
+    private static MetodoPagamento configurarPagamento(Cliente cliente) {
         MetodoPagamento pagamento = null;
         
         while (pagamento == null) {
@@ -221,6 +320,15 @@ public class Main {
             }
         }
         
+        // Salva o método de pagamento no cliente
+        try {
+            cliente.salvarMetodoPagamento(pagamento);
+            clienteDAO.atualizar(cliente);
+            System.out.println("✓ Método de pagamento salvo com sucesso!");
+        } catch (Exception e) {
+            System.out.println("⚠ Aviso: Não foi possível salvar o método de pagamento: " + e.getMessage());
+        }
+        
         return pagamento;
     }
     
@@ -237,6 +345,7 @@ public class Main {
             System.out.println("[3] Buscar Voos Disponíveis");
             System.out.println("[4] Buscar Hospedagens Disponíveis");
             System.out.println("[5] Criar Pacote Turístico");
+            System.out.println("[8] Alterar Método de Pagamento");
             
             if (pacote != null && reserva == null) {
                 System.out.println("[6] Confirmar Reserva");
@@ -294,6 +403,13 @@ public class Main {
                         exibirReserva(reserva);
                     } else {
                         System.out.println("Você não possui reservas.");
+                    }
+                    break;
+                
+                case "8":
+                    MetodoPagamento novoPagamento = configurarPagamento(cliente);
+                    if (novoPagamento != null) {
+                        pagamento = novoPagamento;
                     }
                     break;
                     
