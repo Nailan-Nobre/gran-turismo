@@ -8,20 +8,38 @@ import java.util.List;
 
 /**
  * Implementação base para DAOs usando JPA
+ * Implementa o padrão Singleton para o EntityManagerFactory
  * @param <T> Tipo da entidade
  * @param <ID> Tipo da chave primária
  */
 public abstract class GenericDAOImpl<T, ID> implements GenericDAO<T, ID> {
     
-    private static EntityManagerFactory emf = Persistence.createEntityManagerFactory("minhaUnidadeDePersistencia");
+    // EntityManagerFactory único e compartilhado (thread-safe)
+    private static volatile EntityManagerFactory emf;
     private Class<T> entityClass;
     
     public GenericDAOImpl(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
     
+    /**
+     * Obtém a instância única do EntityManagerFactory
+     * Implementação thread-safe usando Double-Checked Locking
+     * @return EntityManagerFactory singleton
+     */
+    private static EntityManagerFactory getEntityManagerFactory() {
+        if (emf == null) {
+            synchronized (GenericDAOImpl.class) {
+                if (emf == null) {
+                    emf = Persistence.createEntityManagerFactory("minhaUnidadeDePersistencia");
+                }
+            }
+        }
+        return emf;
+    }
+    
     protected EntityManager getEntityManager() {
-        return emf.createEntityManager();
+        return getEntityManagerFactory().createEntityManager();
     }
     
     @Override
@@ -112,10 +130,16 @@ public abstract class GenericDAOImpl<T, ID> implements GenericDAO<T, ID> {
     
     /**
      * Método utilitário para fechar o EntityManagerFactory
+     * Deve ser chamado apenas ao encerrar a aplicação
      */
     public static void fecharEntityManagerFactory() {
         if (emf != null && emf.isOpen()) {
-            emf.close();
+            synchronized (GenericDAOImpl.class) {
+                if (emf != null && emf.isOpen()) {
+                    emf.close();
+                    emf = null;
+                }
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package br.edu.ifpi;
 
 import br.edu.ifpi.service.TurismoService;
+import br.edu.ifpi.util.Cores;
 import java.util.Scanner;
 import java.io.InputStream;
 import java.util.logging.LogManager;
@@ -13,34 +14,36 @@ public class SistemaTurismoCRUD {
     public static void main(String[] args) {
         configurarLogs();
         
-        System.out.println("=== SISTEMA DE TURISMO GRAN TURISMO ===");
-        System.out.print("Inicializando sistema");
+        System.out.println(Cores.separador("=", 50));
+        System.out.println(Cores.titulo("   SISTEMA DE TURISMO GRAN TURISMO"));
+        System.out.println(Cores.separador("=", 50));
+        System.out.print(Cores.info("Inicializando sistema"));
         
         try {
             System.out.print(".");
-            turismoService = new TurismoService();
+            turismoService = TurismoService.getInstance();
             System.out.print(".");
-            System.out.println(" OK!");
-            System.out.println("Sistema pronto para uso!\n");
+            System.out.println(Cores.sucesso(" OK!"));
+            System.out.println(Cores.sucesso("Sistema pronto para uso!\n"));
             menuPrincipal();
         } catch (Exception e) {
-            System.out.println(" FALHOU!");
-            System.err.println("\n⚠ ERRO: Não foi possível iniciar o sistema.");
+            System.out.println(Cores.erro(" FALHOU!"));
+            System.err.println(Cores.erro("\nERRO: Não foi possível iniciar o sistema."));
             
             String mensagem = e.getMessage();
             if (mensagem != null && mensagem.contains("Communications link failure")) {
-                System.err.println("Motivo: Não foi possível conectar ao banco de dados.");
-                System.err.println("Solução: Verifique se o MySQL está rodando e as credenciais estão corretas.");
+                System.err.println(Cores.aviso("Motivo: ") + "Não foi possível conectar ao banco de dados.");
+                System.err.println(Cores.info("Solução: ") + "Verifique se o MySQL está rodando e as credenciais estão corretas.");
             } else if (mensagem != null && mensagem.contains("Access denied")) {
-                System.err.println("Motivo: Usuário ou senha incorretos.");
-                System.err.println("Solução: Verifique as credenciais no arquivo persistence.xml");
+                System.err.println(Cores.aviso("Motivo: ") + "Usuário ou senha incorretos.");
+                System.err.println(Cores.info("Solução: ") + "Verifique as credenciais no arquivo persistence.xml");
             } else if (mensagem != null && mensagem.contains("Unknown database")) {
-                System.err.println("Motivo: Banco de dados 'gran_turismo' não encontrado.");
-                System.err.println("Solução: Execute o script 'criar_banco_completo.sql' primeiro.");
+                System.err.println(Cores.aviso("Motivo: ") + "Banco de dados 'gran_turismo' não encontrado.");
+                System.err.println(Cores.info("Solução: ") + "Execute o script 'criar_banco_completo.sql' primeiro.");
             } else {
-                System.err.println("Motivo: " + (mensagem != null ? mensagem : "Erro desconhecido"));
+                System.err.println(Cores.aviso("Motivo: ") + (mensagem != null ? mensagem : "Erro desconhecido"));
             }
-            System.err.println("\nPor favor, corrija o problema e tente novamente.");
+            System.err.println(Cores.info("\nPor favor, corrija o problema e tente novamente."));
         } finally {
             if (turismoService != null) {
                 turismoService.fecharRecursos();
@@ -66,19 +69,19 @@ public class SistemaTurismoCRUD {
     
     private static void menuPrincipal() {
         while (true) {
-            System.out.println("\n" + "=".repeat(50));
-            System.out.println("GRAN TURISMO - MENU PRINCIPAL");
-            System.out.println("=".repeat(50));
-            System.out.println("1. Gerenciar Clientes");
-            System.out.println("2. Gerenciar Destinos");
-            System.out.println("3. Gerenciar Voos");
-            System.out.println("4. Gerenciar Hospedagens");
-            System.out.println("5. Processar Pagamentos");
-            System.out.println("6. Pacotes Turísticos");
-            System.out.println("7. Relatórios e Consultas");
-            System.out.println("0. Sair");
-            System.out.println("=".repeat(50));
-            System.out.print("Escolha uma opção: ");
+            System.out.println("\n" + Cores.separador("=", 50));
+            System.out.println(Cores.titulo("     GRAN TURISMO - MENU PRINCIPAL"));
+            System.out.println(Cores.separador("=", 50));
+            System.out.println(Cores.info("[1]") + " Gerenciar Clientes");
+            System.out.println(Cores.info("[2]") + " Gerenciar Destinos");
+            System.out.println(Cores.info("[3]") + " Gerenciar Voos");
+            System.out.println(Cores.info("[4]") + " Gerenciar Hospedagens");
+            System.out.println(Cores.info("[5]") + " Processar Pagamentos");
+            System.out.println(Cores.info("[6]") + " Pacotes Turísticos");
+            System.out.println(Cores.info("[7]") + " Relatórios e Consultas");
+            System.out.println(Cores.VERMELHO_BRILHANTE + "[0]" + Cores.RESET + " Sair");
+            System.out.println(Cores.separador("=", 50));
+            System.out.print(Cores.input("Escolha uma opção: "));
             
             String opcao = scanner.nextLine();
             
@@ -105,23 +108,23 @@ public class SistemaTurismoCRUD {
                     menuRelatorios();
                     break;
                 case "0":
-                    System.out.println("Obrigado por usar o Gran Turismo!");
+                    System.out.println(Cores.sucesso("\nObrigado por usar o Gran Turismo!"));
                     return;
                 default:
-                    System.out.println("Opção inválida! Tente novamente.");
+                    System.out.println(Cores.erro("Opção inválida! Tente novamente."));
             }
         }
     }
     
     private static void menuRelatorios() {
         while (true) {
-            System.out.println("\n=== RELATÓRIOS E CONSULTAS ===");
-            System.out.println("1. Total de Clientes Cadastrados");
-            System.out.println("2. Total de Destinos por País");
-            System.out.println("3. Listar Todos os Voos");
-            System.out.println("4. Listar Todas as Hospedagens");
-            System.out.println("0. Voltar");
-            System.out.print("Escolha uma opção: ");
+            System.out.println("\n" + Cores.titulo("=== RELATÓRIOS E CONSULTAS ==="));
+            System.out.println(Cores.info("[1]") + " Total de Clientes Cadastrados");
+            System.out.println(Cores.info("[2]") + " Total de Destinos por País");
+            System.out.println(Cores.info("[3]") + " Listar Todos os Voos");
+            System.out.println(Cores.info("[4]") + " Listar Todas as Hospedagens");
+            System.out.println(Cores.info("[0]") + " Voltar");
+            System.out.print(Cores.input("Escolha uma opção: "));
             
             String opcao = scanner.nextLine();
             
@@ -141,7 +144,7 @@ public class SistemaTurismoCRUD {
                 case "0":
                     return;
                 default:
-                    System.out.println("Opção inválida!");
+                    System.out.println(Cores.erro("Opção inválida!"));
             }
         }
     }

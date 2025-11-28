@@ -4,13 +4,18 @@ import br.edu.ifpi.Model.*;
 import br.edu.ifpi.dao.*;
 import br.edu.ifpi.factory.*;
 import br.edu.ifpi.util.Validador;
+import br.edu.ifpi.util.Cores;
 import java.util.List;
 import java.util.Scanner;
 
 /**
  * Serviço principal para gerenciar operações CRUD do sistema de turismo
+ * Implementa o padrão Singleton para garantir uma única instância no sistema
  */
 public class TurismoService {
+    
+    // Instância única do Singleton (thread-safe com inicialização lazy)
+    private static volatile TurismoService instance;
     
     private ClienteDAO clienteDAO;
     private DestinoDAO destinoDAO;
@@ -18,7 +23,11 @@ public class TurismoService {
     private HospedagemDAO hospedagemDAO;
     private Scanner scanner;
     
-    public TurismoService() {
+    /**
+     * Construtor privado para prevenir instanciação externa
+     * Apenas o método getInstance() pode criar a instância
+     */
+    private TurismoService() {
         this.clienteDAO = new ClienteDAO();
         this.destinoDAO = new DestinoDAO();
         this.vooDAO = new VooDAO();
@@ -26,19 +35,35 @@ public class TurismoService {
         this.scanner = new Scanner(System.in);
     }
     
+    /**
+     * Método estático para obter a instância única do serviço
+     * Implementação thread-safe usando Double-Checked Locking
+     * @return A instância única de TurismoService
+     */
+    public static TurismoService getInstance() {
+        if (instance == null) {
+            synchronized (TurismoService.class) {
+                if (instance == null) {
+                    instance = new TurismoService();
+                }
+            }
+        }
+        return instance;
+    }
+    
     // ==================== CLIENTES ====================
     
     public void menuClientes() {
         while (true) {
-            System.out.println("\n=== GERENCIAR CLIENTES ===");
-            System.out.println("1. Cadastrar Cliente");
-            System.out.println("2. Listar Clientes");
-            System.out.println("3. Buscar Cliente por CPF");
-            System.out.println("4. Buscar Cliente por Nome");
-            System.out.println("5. Atualizar Cliente");
-            System.out.println("6. Remover Cliente");
-            System.out.println("0. Voltar");
-            System.out.print("Escolha uma opção: ");
+            System.out.println("\n" + Cores.titulo("=== GERENCIAR CLIENTES ==="));
+            System.out.println(Cores.info("[1]") + " Cadastrar Cliente");
+            System.out.println(Cores.info("[2]") + " Listar Clientes");
+            System.out.println(Cores.info("[3]") + " Buscar Cliente por CPF");
+            System.out.println(Cores.info("[4]") + " Buscar Cliente por Nome");
+            System.out.println(Cores.info("[5]") + " Atualizar Cliente");
+            System.out.println(Cores.info("[6]") + " Remover Cliente");
+            System.out.println(Cores.info("[0]") + " Voltar");
+            System.out.print(Cores.input("Escolha uma opção: "));
             
             String opcao = scanner.nextLine();
             
@@ -50,37 +75,37 @@ public class TurismoService {
                 case "5": atualizarCliente(); break;
                 case "6": removerCliente(); break;
                 case "0": return;
-                default: System.out.println("Opção inválida!");
+                default: System.out.println(Cores.erro("Opção inválida!"));
             }
         }
     }
     
     private void cadastrarCliente() {
-        System.out.println("\n--- Cadastrar Cliente ---");
+        System.out.println("\n" + Cores.destaque("--- Cadastrar Cliente ---"));
         
-        System.out.print("Nome: ");
+        System.out.print(Cores.input("Nome: "));
         String nome = scanner.nextLine().trim();
         if (nome.isEmpty()) {
-            System.out.println("ERRO: Nome não pode ser vazio.");
+            System.out.println(Cores.erro("ERRO: Nome não pode ser vazio."));
             return;
         }
         
         String email = "";
         while (email.isEmpty()) {
-            System.out.print("Email: ");
+            System.out.print(Cores.input("Email: "));
             email = scanner.nextLine().trim();
             if (!Validador.validarEmail(email)) {
-                System.out.println("ERRO: Email inválido. Use o formato: exemplo@dominio.com");
+                System.out.println(Cores.erro("ERRO: Email inválido. Use o formato: exemplo@dominio.com"));
                 email = "";
             }
         }
         
         String telefone = "";
         while (telefone.isEmpty()) {
-            System.out.print("Telefone (com DDD): ");
+            System.out.print(Cores.input("Telefone (com DDD): "));
             telefone = scanner.nextLine().trim();
             if (!Validador.validarTelefone(telefone)) {
-                System.out.println("ERRO: Telefone inválido. Use o formato: (99) 99999-9999");
+                System.out.println(Cores.erro("ERRO: Telefone inválido. Use o formato: (99) 99999-9999"));
                 telefone = "";
             }
         }
@@ -88,10 +113,10 @@ public class TurismoService {
         
         String cpf = "";
         while (cpf.isEmpty()) {
-            System.out.print("CPF: ");
+            System.out.print(Cores.input("CPF: "));
             cpf = scanner.nextLine().trim();
             if (!Validador.validarCPF(cpf)) {
-                System.out.println("ERRO: CPF inválido. Digite apenas números (11 dígitos).");
+                System.out.println(Cores.erro("ERRO: CPF inválido. Digite apenas números (11 dígitos)."));
                 cpf = "";
             }
         }
@@ -99,24 +124,24 @@ public class TurismoService {
         
         try {
             if (clienteDAO.existeCpf(cpf)) {
-                System.out.println("ERRO: CPF já está cadastrado!");
+                System.out.println(Cores.erro("ERRO: CPF já está cadastrado!"));
                 return;
             }
             
             String senha = "";
             while (senha.isEmpty()) {
-                System.out.print("Senha (mínimo 6 caracteres): ");
+                System.out.print(Cores.input("Senha (mínimo 6 caracteres): "));
                 senha = scanner.nextLine().trim();
                 if (senha.length() < 6) {
-                    System.out.println("ERRO: Senha deve ter no mínimo 6 caracteres.");
+                    System.out.println(Cores.erro("ERRO: Senha deve ter no mínimo 6 caracteres."));
                     senha = "";
                     continue;
                 }
                 
-                System.out.print("Confirme a senha: ");
+                System.out.print(Cores.input("Confirme a senha: "));
                 String confirmaSenha = scanner.nextLine().trim();
                 if (!senha.equals(confirmaSenha)) {
-                    System.out.println("ERRO: As senhas não coincidem.");
+                    System.out.println(Cores.erro("ERRO: As senhas não coincidem."));
                     senha = "";
                 }
             }
@@ -124,133 +149,133 @@ public class TurismoService {
             Cliente cliente = EntidadeFactory.criarCliente(nome, email, cpf, senha);
             cliente.setTelefone(telefone);
             clienteDAO.salvar(cliente);
-            System.out.println("Cliente cadastrado com sucesso! ID: " + cliente.getId());
+            System.out.println(Cores.sucesso("Cliente cadastrado com sucesso! ID: ") + Cores.AMARELO_BRILHANTE + cliente.getId() + Cores.RESET);
         } catch (Exception e) {
-            System.out.println("ERRO ao cadastrar cliente: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao cadastrar cliente: ") + e.getMessage());
         }
     }
     
     private void listarClientes() {
-        System.out.println("\n--- Lista de Clientes ---");
+        System.out.println("\n" + Cores.destaque("--- Lista de Clientes ---"));
         try {
             List<Cliente> clientes = clienteDAO.listarTodos();
             if (clientes.isEmpty()) {
-                System.out.println("Nenhum cliente cadastrado.");
+                System.out.println(Cores.aviso("Nenhum cliente cadastrado."));
             } else {
                 for (Cliente cliente : clientes) {
-                    System.out.println("ID: " + cliente.getId() + 
-                                     " | Nome: " + cliente.getNome() + 
-                                     " | Email: " + cliente.getEmail() + 
-                                     " | CPF: " + cliente.getCpf());
+                    System.out.println(Cores.info("ID: ") + Cores.AMARELO_BRILHANTE + cliente.getId() + Cores.RESET + 
+                                     Cores.info(" | Nome: ") + Cores.BRANCO_BRILHANTE + cliente.getNome() + Cores.RESET + 
+                                     Cores.info(" | Email: ") + cliente.getEmail() + 
+                                     Cores.info(" | CPF: ") + cliente.getCpf());
                 }
             }
         } catch (Exception e) {
-            System.out.println("ERRO ao listar clientes: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao listar clientes: ") + e.getMessage());
         }
     }
     
     private void buscarClientePorCpf() {
-        System.out.print("Digite o CPF: ");
+        System.out.print(Cores.input("Digite o CPF: "));
         String cpf = scanner.nextLine();
         
         try {
             Cliente cliente = clienteDAO.buscarPorCpf(cpf);
             if (cliente != null) {
-                System.out.println("Cliente encontrado:");
-                System.out.println("ID: " + cliente.getId() + 
-                                 " | Nome: " + cliente.getNome() + 
-                                 " | Email: " + cliente.getEmail() + 
-                                 " | CPF: " + cliente.getCpf());
+                System.out.println(Cores.sucesso("Cliente encontrado:"));
+                System.out.println(Cores.info("ID: ") + Cores.AMARELO_BRILHANTE + cliente.getId() + Cores.RESET + 
+                                 Cores.info(" | Nome: ") + Cores.BRANCO_BRILHANTE + cliente.getNome() + Cores.RESET + 
+                                 Cores.info(" | Email: ") + cliente.getEmail() + 
+                                 Cores.info(" | CPF: ") + cliente.getCpf());
             } else {
-                System.out.println("Cliente não encontrado.");
+                System.out.println(Cores.aviso("Cliente não encontrado."));
             }
         } catch (Exception e) {
-            System.out.println("ERRO ao buscar cliente: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao buscar cliente: ") + e.getMessage());
         }
     }
     
     private void buscarClientePorNome() {
-        System.out.print("Digite o nome (ou parte): ");
+        System.out.print(Cores.input("Digite o nome (ou parte): "));
         String nome = scanner.nextLine();
         
         try {
             List<Cliente> clientes = clienteDAO.buscarPorNome(nome);
             if (clientes.isEmpty()) {
-                System.out.println("Nenhum cliente encontrado.");
+                System.out.println(Cores.aviso("Nenhum cliente encontrado."));
             } else {
-                System.out.println("Clientes encontrados:");
+                System.out.println(Cores.sucesso("Clientes encontrados:"));
                 for (Cliente cliente : clientes) {
-                    System.out.println("ID: " + cliente.getId() + 
-                                     " | Nome: " + cliente.getNome() + 
-                                     " | Email: " + cliente.getEmail() + 
-                                     " | CPF: " + cliente.getCpf());
+                    System.out.println(Cores.info("ID: ") + Cores.AMARELO_BRILHANTE + cliente.getId() + Cores.RESET + 
+                                     Cores.info(" | Nome: ") + Cores.BRANCO_BRILHANTE + cliente.getNome() + Cores.RESET + 
+                                     Cores.info(" | Email: ") + cliente.getEmail() + 
+                                     Cores.info(" | CPF: ") + cliente.getCpf());
                 }
             }
         } catch (Exception e) {
-            System.out.println("ERRO ao buscar clientes: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao buscar clientes: ") + e.getMessage());
         }
     }
     
     private void atualizarCliente() {
-        System.out.print("Digite o ID do cliente: ");
+        System.out.print(Cores.input("Digite o ID do cliente: "));
         try {
             Long id = Long.parseLong(scanner.nextLine());
             Cliente cliente = clienteDAO.buscarPorId(id);
             
             if (cliente == null) {
-                System.out.println("Cliente não encontrado.");
+                System.out.println(Cores.erro("Cliente não encontrado."));
                 return;
             }
             
-            System.out.println("Cliente atual: " + cliente.getNome() + " - " + cliente.getEmail());
-            System.out.print("Novo nome (ou ENTER para manter): ");
+            System.out.println(Cores.info("Cliente atual: ") + Cores.BRANCO_BRILHANTE + cliente.getNome() + Cores.RESET + Cores.info(" - ") + cliente.getEmail());
+            System.out.print(Cores.input("Novo nome (ou ENTER para manter): "));
             String novoNome = scanner.nextLine();
             if (!novoNome.trim().isEmpty()) {
                 cliente.setNome(novoNome);
             }
             
-            System.out.print("Novo email (ou ENTER para manter): ");
+            System.out.print(Cores.input("Novo email (ou ENTER para manter): "));
             String novoEmail = scanner.nextLine();
             if (!novoEmail.trim().isEmpty()) {
                 cliente.setEmail(novoEmail);
             }
             
             clienteDAO.atualizar(cliente);
-            System.out.println("Cliente atualizado com sucesso!");
+            System.out.println(Cores.sucesso("Cliente atualizado com sucesso!"));
             
         } catch (NumberFormatException e) {
-            System.out.println("ID inválido!");
+            System.out.println(Cores.erro("ID inválido!"));
         } catch (Exception e) {
-            System.out.println("ERRO ao atualizar cliente: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao atualizar cliente: ") + e.getMessage());
         }
     }
     
     private void removerCliente() {
-        System.out.print("Digite o ID do cliente: ");
+        System.out.print(Cores.input("Digite o ID do cliente: "));
         try {
             Long id = Long.parseLong(scanner.nextLine());
             Cliente cliente = clienteDAO.buscarPorId(id);
             
             if (cliente == null) {
-                System.out.println("Cliente não encontrado.");
+                System.out.println(Cores.erro("Cliente não encontrado."));
                 return;
             }
             
-            System.out.println("Cliente: " + cliente.getNome() + " - " + cliente.getEmail());
-            System.out.print("Confirma a remoção? (s/n): ");
+            System.out.println(Cores.info("Cliente: ") + Cores.BRANCO_BRILHANTE + cliente.getNome() + Cores.RESET + Cores.info(" - ") + cliente.getEmail());
+            System.out.print(Cores.aviso("Confirma a remoção? (s/n): "));
             String confirmacao = scanner.nextLine();
             
             if (confirmacao.equalsIgnoreCase("s") || confirmacao.equalsIgnoreCase("sim")) {
                 clienteDAO.remover(cliente);
-                System.out.println("Cliente removido com sucesso!");
+                System.out.println(Cores.sucesso("Cliente removido com sucesso!"));
             } else {
-                System.out.println("Remoção cancelada.");
+                System.out.println(Cores.info("Remoção cancelada."));
             }
             
         } catch (NumberFormatException e) {
-            System.out.println("ID inválido!");
+            System.out.println(Cores.erro("ID inválido!"));
         } catch (Exception e) {
-            System.out.println("ERRO ao remover cliente: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao remover cliente: ") + e.getMessage());
         }
     }
     
@@ -258,15 +283,15 @@ public class TurismoService {
     
     public void menuDestinos() {
         while (true) {
-            System.out.println("\n=== GERENCIAR DESTINOS ===");
-            System.out.println("1. Cadastrar Destino");
-            System.out.println("2. Listar Destinos");
-            System.out.println("3. Buscar por País");
-            System.out.println("4. Buscar por Nome");
-            System.out.println("5. Atualizar Destino");
-            System.out.println("6. Remover Destino");
-            System.out.println("0. Voltar");
-            System.out.print("Escolha uma opção: ");
+            System.out.println("\n" + Cores.titulo("=== GERENCIAR DESTINOS ==="));
+            System.out.println(Cores.info("[1]") + " Cadastrar Destino");
+            System.out.println(Cores.info("[2]") + " Listar Destinos");
+            System.out.println(Cores.info("[3]") + " Buscar por País");
+            System.out.println(Cores.info("[4]") + " Buscar por Nome");
+            System.out.println(Cores.info("[5]") + " Atualizar Destino");
+            System.out.println(Cores.info("[6]") + " Remover Destino");
+            System.out.println(Cores.info("[0]") + " Voltar");
+            System.out.print(Cores.input("Escolha uma opção: "));
             
             String opcao = scanner.nextLine();
             
@@ -278,42 +303,42 @@ public class TurismoService {
                 case "5": atualizarDestino(); break;
                 case "6": removerDestino(); break;
                 case "0": return;
-                default: System.out.println("Opção inválida!");
+                default: System.out.println(Cores.erro("Opção inválida!"));
             }
         }
     }
     
     private void cadastrarDestino() {
-        System.out.println("\n--- Cadastrar Destino ---");
-        System.out.print("Nome da cidade: ");
+        System.out.println("\n" + Cores.destaque("--- Cadastrar Destino ---"));
+        System.out.print(Cores.input("Nome da cidade: "));
         String nome = scanner.nextLine();
         
-        System.out.print("País: ");
+        System.out.print(Cores.input("País: "));
         String pais = scanner.nextLine();
         
         try {
             Destino destino = new Destino(nome, pais);
             destinoDAO.salvar(destino);
-            System.out.println("Destino cadastrado com sucesso! ID: " + destino.getId());
+            System.out.println(Cores.sucesso("Destino cadastrado com sucesso! ID: ") + Cores.AMARELO_BRILHANTE + destino.getId() + Cores.RESET);
         } catch (Exception e) {
-            System.out.println("ERRO ao cadastrar destino: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao cadastrar destino: ") + e.getMessage());
         }
     }
     
     private void listarDestinos() {
-        System.out.println("\n--- Lista de Destinos ---");
+        System.out.println("\n" + Cores.destaque("--- Lista de Destinos ---"));
         try {
             List<Destino> destinos = destinoDAO.listarTodos();
             if (destinos.isEmpty()) {
-                System.out.println("Nenhum destino cadastrado.");
+                System.out.println(Cores.aviso("Nenhum destino cadastrado."));
             } else {
                 for (Destino destino : destinos) {
-                    System.out.println("ID: " + destino.getId() + 
-                                     " | " + destino.getDescricao());
+                    System.out.println(Cores.info("ID: ") + Cores.AMARELO_BRILHANTE + destino.getId() + Cores.RESET + 
+                                     Cores.info(" | ") + Cores.CIANO_BRILHANTE + destino.getDescricao() + Cores.RESET);
                 }
             }
         } catch (Exception e) {
-            System.out.println("ERRO ao listar destinos: " + e.getMessage());
+            System.out.println(Cores.erro("ERRO ao listar destinos: ") + e.getMessage());
         }
     }
     

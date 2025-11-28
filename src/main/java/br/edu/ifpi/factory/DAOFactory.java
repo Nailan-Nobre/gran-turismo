@@ -2,12 +2,42 @@ package br.edu.ifpi.factory;
 
 import br.edu.ifpi.dao.*;
 
+/**
+ * Factory para criação e gerenciamento de DAOs
+ * Implementa o padrão Singleton para garantir instâncias únicas de cada DAO
+ */
 public class DAOFactory {
+    
+    // Instância única da factory
+    private static volatile DAOFactory instance;
     
     private static ClienteDAO clienteDAO;
     private static DestinoDAO destinoDAO;
     private static VooDAO vooDAO;
     private static HospedagemDAO hospedagemDAO;
+    
+    /**
+     * Construtor privado para prevenir instanciação externa
+     */
+    private DAOFactory() {
+        // Construtor vazio - DAOs são criados sob demanda
+    }
+    
+    /**
+     * Método estático para obter a instância única da factory
+     * Implementação thread-safe usando Double-Checked Locking
+     * @return A instância única de DAOFactory
+     */
+    public static DAOFactory getInstance() {
+        if (instance == null) {
+            synchronized (DAOFactory.class) {
+                if (instance == null) {
+                    instance = new DAOFactory();
+                }
+            }
+        }
+        return instance;
+    }
     
     public enum TipoDAO {
         CLIENTE,
