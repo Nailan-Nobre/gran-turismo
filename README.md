@@ -7,9 +7,9 @@ Repositório da Atividade Avaliativa - Sistema de Gerenciamento de Turismo com C
 Antes de começar, você precisa ter instalado em sua máquina:
 
 - **Java JDK 24** ou superior ([Download](https://www.oracle.com/java/technologies/downloads/))
-- **Maven 3.6+** ([Download](https://maven.apache.org/download.cgi))
-- **MySQL Workbench 8.0.45** ([Download](https://dev.mysql.com/downloads/workbench/))
-- **Git** ([Download](https://git-scm.com/downloads))
+- **Maven 3.6+**              ([Download](https://maven.apache.org/download.cgi))
+- **MySQL Workbench 8.0.45**  ([Download](https://dev.mysql.com/downloads/workbench/))
+- **Git**                     ([Download](https://git-scm.com/downloads))
 
 ## 🚀 Como Rodar o Projeto
 
@@ -108,4 +108,5 @@ src/main/java/br/edu/ifpi/
 ---
 
 Este projeto foi desenvolvido para fins acadêmicos.
+
 
