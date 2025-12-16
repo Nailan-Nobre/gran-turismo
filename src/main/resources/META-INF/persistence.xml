@@ -19,8 +19,8 @@
             <!-- Configurações do MySQL -->
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/gran_turismo?useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true"/>
-            <property name="jakarta.persistence.jdbc.user" value="root"/>
-            <property name="jakarta.persistence.jdbc.password" value="Alfr2369"/>
+            <property name="jakarta.persistence.jdbc.user" value="SEU_USUARIO"/>
+            <property name="jakarta.persistence.jdbc.password" value="SUA_SENHA"/>
             
             <!-- Configurações do Hibernate -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
