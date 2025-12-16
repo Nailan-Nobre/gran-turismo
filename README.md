@@ -102,9 +102,10 @@ src/main/java/br/edu/ifpi/
 - [Fernanda Ellen](https://github.com/Fernandaellen002)
 - [Fernanda Istéfane](https://github.com/FernandaIstefane)
 - [Nailan Nobre](https://github.com/Nailan-Nobre)
-- [Roberto Algusto](https://github.com/EtoDoze  )
+- [Roberto Augusto](https://github.com/EtoDoze  )
 - [Yan Carlos]()
 
 ---
 
 Este projeto foi desenvolvido para fins acadêmicos.
+
